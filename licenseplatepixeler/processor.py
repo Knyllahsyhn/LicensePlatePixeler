@@ -15,7 +15,8 @@ class VideoProcessor:
         detector=None,
         tracking_enabled=True,
         detection_interval=30,
-        tracker_type="CSRT"
+        tracker_type="CSRT",
+        shrink_factor= 0.1
     ):
         """
         :param detector: LicensePlateDetector (YOLO) 
@@ -28,6 +29,21 @@ class VideoProcessor:
         self.detection_interval = detection_interval
         self.tracker_type = tracker_type
         self.tracker = None
+        self.shrink_factor = shrink_factor
+    
+    def shrink_bbox(self,x1, y1, x2, y2, shrink_factor=0.1):
+        """Shrink each dimension of the bounding box by shrink_factor."""
+        width = x2 - x1
+        height = y2 - y1
+        # Calculate new corners
+        x1n = x1 + int(width * shrink_factor)
+        y1n = y1 + int(height * shrink_factor)
+        x2n = x2 - int(width * shrink_factor)
+        y2n = y2 - int(height * shrink_factor)
+        # Ensure we don’t invert the box
+        if x2n < x1n: x2n = x1n
+        if y2n < y1n: y2n = y1n
+        return [x1n, y1n, x2n, y2n]
 
     def blur_bboxes(self, frame, bboxes, blur_kernel=(15,15)):
         for (x1, y1, x2, y2) in bboxes:
@@ -84,6 +100,11 @@ class VideoProcessor:
                         else:
                             # Update the existing trackers
                             bboxes = self.tracker.update(img)
+                    
+                    # Shrink bounding boxes if shrink_factor > 0
+                    if self.shrink_factor > 0:
+                        bboxes = [self.shrink_bbox(*bbox, self.shrink_factor) for bbox in bboxes]
+
 
                     # Blur the bounding boxes
                     self.blur_bboxes(img, bboxes)

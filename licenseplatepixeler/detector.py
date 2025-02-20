@@ -8,15 +8,17 @@ logging.getLogger("ultralytics").setLevel(logging.WARNING)
 
 
 class LicensePlateDetector:
-    def __init__(self, model_path='yolo11n.pt', conf_threshold=0.5):
+    def __init__(self, model_path='yolo11n.pt', conf_threshold=0.5,iou_threshold=0.45):
         """
-        Initialize the YOLO model. 
-        In production, consider using a fine-tuned model specifically for license plates 
-        (or filter YOLO classes to license plate if your model is trained that way).
+        :param model_path: Path to YOLO model
+        :param conf_threshold: Confidence threshold for detection
+        :param iou_threshold: IoU threshold for NMS
         """
-        logger.debug(f"Loading YOLO model from {model_path} with conf threshold {conf_threshold}")
+        logger.debug(f"Loading YOLO model from {model_path} "
+                     f"with conf threshold {conf_threshold}, iou {iou_threshold}")
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
+        self.iou_threshold = iou_threshold
 
     def detect_plates(self, frame):
         """
@@ -25,7 +27,10 @@ class LicensePlateDetector:
         """
         # YOLO expects: BGR or RGB image in numpy
         # The ultralytics YOLO automatically handles transformations
-        results = self.model.predict(frame, conf=self.conf_threshold)
+        results = self.model.predict(
+        frame,
+        conf=self.conf_threshold,
+        iou = self.iou_threshold)
         
         bboxes = []
         # YOLOv8 returns results in results[0].boxes
