@@ -13,20 +13,17 @@ class VideoProcessor:
     def __init__(
         self,
         detector=None,
-        use_hw_accel=False,
         tracking_enabled=True,
         detection_interval=15,
         tracker_type="CSRT"
     ):
         """
         :param detector: LicensePlateDetector (YOLO) 
-        :param use_hw_accel: Attempt hardware acceleration 
         :param tracking_enabled: If True, we use the PlateTracker
         :param detection_interval: Run YOLO every N frames 
         :param tracker_type: Which OpenCV tracker to use ("CSRT", "KCF", "MIL", etc.)
         """
         self.detector = detector if detector else LicensePlateDetector()
-        self.use_hw_accel = use_hw_accel
         self.tracking_enabled = tracking_enabled
         self.detection_interval = detection_interval
         self.tracker_type = tracker_type

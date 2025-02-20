@@ -1,7 +1,7 @@
 import os
 import glob
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QProgressBar
+    QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QProgressBar,QComboBox
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from processor import VideoProcessor
@@ -12,16 +12,16 @@ class ProcessingThread(QThread):
     progress_signal = pyqtSignal(str)  # For text updates
     progress_bar_signal = pyqtSignal(int, int)  # For progress bar
     
-    def __init__(self, files, hw_accel=False, verbose=False):
+    def __init__(self, files, tracker_type, verbose=False):
         super().__init__()
         self.files = files
-        self.hw_accel = hw_accel
         self.verbose = verbose
+        self.tracker_type= tracker_type
 
     def run(self):
         logger = setup_logger(verbose=self.verbose)
         detector = LicensePlateDetector()
-        processor = VideoProcessor(detector=detector, use_hw_accel=self.hw_accel and hardware_acceleration_supported())
+        processor = VideoProcessor(detector=detector,tracker_type=self.tracker_type)
 
         def progress_callback(frame_index, total_frames):
             if total_frames:
@@ -37,6 +37,7 @@ class BlurApp(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
+        self.tracker_type="KCF"
 
     def init_ui(self):
         self.setWindowTitle("License Plate Blurrer")
@@ -48,6 +49,11 @@ class BlurApp(QWidget):
 
         self.select_folder_btn = QPushButton("Select Folder")
         self.select_folder_btn.clicked.connect(self.select_folder)
+        
+        self.tracker_combo= QComboBox()
+        self.tracker_combo.addItems(["CSRT", "KCF", "MIL", "MOSSE"])
+        self.tracker_combo.currentTextChanged.connect(self.on_tracker_changed)
+        
 
         self.start_btn = QPushButton("Start Processing")
         self.start_btn.clicked.connect(self.start_processing)
@@ -61,6 +67,8 @@ class BlurApp(QWidget):
         layout.addWidget(self.select_file_btn)
         layout.addWidget(self.select_folder_btn)
         layout.addWidget(self.start_btn)
+        layout.addWidget(QLabel("Tracker Type:"))
+        layout.addWidget(self.tracker_combo)
         layout.addWidget(self.status_label)
         layout.addWidget(self.progress_bar)
 
@@ -88,12 +96,16 @@ class BlurApp(QWidget):
             self.start_btn.setEnabled(True)
 
     def start_processing(self):
-        self.processing_thread = ProcessingThread(self.files_to_process, hw_accel=False, verbose=False)
+        self.processing_thread = ProcessingThread(self.files_to_process,tracker_type=self.tracker_type,verbose=False)
         self.processing_thread.progress_signal.connect(self.update_status)
         self.processing_thread.progress_bar_signal.connect(self.update_progress_bar)
         self.processing_thread.finished.connect(self.processing_done)
         self.processing_thread.start()
         self.start_btn.setEnabled(False)
+    
+    def on_tracker_changed(self, text):
+        self.tracker_type = text
+        self.update_status(f"Tracker changed to: {text}")
 
     def update_status(self, message):
         self.status_label.setText(f"Status: {message}")

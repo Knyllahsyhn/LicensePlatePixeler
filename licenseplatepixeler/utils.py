@@ -28,13 +28,3 @@ def get_output_video_path(input_path):
     return f"{base}_blurred{ext}"
 
 
-def hardware_acceleration_supported():
-    """
-    Check if hardware acceleration (e.g. GPU decoding/encoding) is available.
-    This is highly system-dependent and typically requires particular 
-    builds of ffmpeg, drivers, etc.
-    Return True if available, else False.
-    """
-    # Simplified example. Real checks can be more involved.
-    # For example, checking for nvcodec, vaapi, or videotoolbox, etc.
-    return False

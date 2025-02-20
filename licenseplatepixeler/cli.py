@@ -5,11 +5,11 @@ from processor import VideoProcessor
 from licenseplatepixeler.detector import LicensePlateDetector
 from utils import setup_logger, get_output_video_path, hardware_acceleration_supported
 
-def process_files(input_files, verbose=False, hw_accel=False):
+def process_files(input_files, tracker_type="KCF", verbose=False):
     logger = setup_logger(verbose=verbose)
 
     detector = LicensePlateDetector()  # or specify custom model
-    processor = VideoProcessor(detector=detector, use_hw_accel=hw_accel and hardware_acceleration_supported())
+    processor = VideoProcessor(detector=detector,tracker_type=tracker_type)
 
     def progress_callback(frame_index, total_frames):
         if total_frames is None:
@@ -31,7 +31,8 @@ def run_cli():
     parser = argparse.ArgumentParser(description="Automatically blur license plates in videos.")
     parser.add_argument("paths", nargs="+", help="Paths to video files or folders to process.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
-    parser.add_argument("--hwaccel", action="store_true", help="Use hardware acceleration if available.")
+    parser.add_argument("--tracker", default="KCF", choices=["CSRT","KCF","MIL","MOSSE"],help="OpenCV tracker type to use (default KCF)")
+    parser.add_argument("--interval",default="15",type=int,help="Tracker interval to use")
     args = parser.parse_args()
 
     # Collect input_files from the given paths
@@ -48,6 +49,6 @@ def run_cli():
 
     # Process them
     if input_files:
-        process_files(input_files, verbose=args.verbose, hw_accel=args.hwaccel)
+        process_files(input_files, verbose=args.verbose, tracker_type=args.tracker)
     else:
         print("No valid video files to process.")
