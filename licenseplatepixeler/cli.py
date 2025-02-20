@@ -32,7 +32,7 @@ def run_cli():
     parser.add_argument("paths", nargs="+", help="Paths to video files or folders to process.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
     parser.add_argument("--tracker", default="KCF", choices=["CSRT","KCF","MIL","MOSSE"],help="OpenCV tracker type to use (default KCF)")
-    parser.add_argument("--interval",default="15",type=int,help="Tracker interval to use")
+    parser.add_argument("--interval",default="30",type=int,help="Tracker interval to use")
     args = parser.parse_args()
 
     # Collect input_files from the given paths

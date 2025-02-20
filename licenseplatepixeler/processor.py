@@ -14,7 +14,7 @@ class VideoProcessor:
         self,
         detector=None,
         tracking_enabled=True,
-        detection_interval=15,
+        detection_interval=30,
         tracker_type="CSRT"
     ):
         """
