@@ -1,27 +1,40 @@
-import cv2
-import json
+import logging
+import sys
 import os
 
-CONFIG_PATH = "config.json"
+def setup_logger(verbose=False):
+    """
+    Sets up logging.
+    If verbose is False, set the logging level to WARNING (or ERROR) 
+    to suppress most messages from YOLO, PyAV, etc.
+    If verbose is True, set the logging to DEBUG.
+    """
+    level = logging.DEBUG if verbose else logging.WARNING
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=level,
+        format='[%(levelname)s] %(name)s: %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    return logger
 
-def add_pixelation(image, boxes, pixel_size=10):
-    for (x1, y1, x2, y2) in boxes:
-        region = image[y1:y2, x1:x2]
-        region = cv2.resize(region, (pixel_size, pixel_size), interpolation=cv2.INTER_LINEAR)
-        region = cv2.resize(region, (x2-x1, y2-y1), interpolation=cv2.INTER_NEAREST)
-        image[y1:y2, x1:x2] = region
-    return image
 
-def setup_logging(verbose):
-    import logging
-    logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
+def get_output_video_path(input_path):
+    """
+    Returns the output path by appending '_blurred' before the file extension.
+    e.g. /path/to/video.mp4 -> /path/to/video_blurred.mp4
+    """
+    base, ext = os.path.splitext(input_path)
+    return f"{base}_blurred{ext}"
 
-def load_config():
-    if os.path.exists(CONFIG_PATH):
-        with open(CONFIG_PATH, "r") as f:
-            return json.load(f)
-    return {}
 
-def save_config(config):
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(config, f, indent=4)
+def hardware_acceleration_supported():
+    """
+    Check if hardware acceleration (e.g. GPU decoding/encoding) is available.
+    This is highly system-dependent and typically requires particular 
+    builds of ffmpeg, drivers, etc.
+    Return True if available, else False.
+    """
+    # Simplified example. Real checks can be more involved.
+    # For example, checking for nvcodec, vaapi, or videotoolbox, etc.
+    return False
