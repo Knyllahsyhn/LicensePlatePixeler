@@ -2,12 +2,13 @@ import argparse
 import os
 import glob
 from processor import VideoProcessor
-from licenseplatepixeler.detector import LicensePlateDetector
-from utils import setup_logger, get_output_video_path, hardware_acceleration_supported
+from detector import LicensePlateDetector
+from utils import setup_logger, get_output_video_path
 
 def process_files(
     input_files,
     tracker_type="KCF",
+    tracking_enabled=True,
     detection_interval = 30,
     conf_threshold = 0.45,
     iou_threshold = 0.45,
@@ -20,9 +21,8 @@ def process_files(
     processor = VideoProcessor(
         detector=detector,
         tracker_type=tracker_type,
-        tracking_enabled=True,
+        tracking_enabled=tracking_enabled,
         detection_interval=detection_interval,
-        iou_threshold=iou_threshold,
         shrink_factor=shrink_factor
         )
 
@@ -49,12 +49,13 @@ def run_cli():
     parser.add_argument("--tracker", default="KCF", choices=["CSRT","KCF","MIL","MOSSE"],help="OpenCV tracker type to use (default KCF)")
     parser.add_argument("--interval", type=int, default=15,
                         help="Interval (in frames) for YOLO re-detection.")
-    parser.add_argument("--conf-threshold", type=float, default=0.5,
+    parser.add_argument("--conf_threshold", type=float, default=0.5,
                         help="Confidence threshold for YOLO. Default=0.5.")
-    parser.add_argument("--iou-threshold", type=float, default=0.45,
+    parser.add_argument("--iou_threshold", type=float, default=0.45,
                         help="IoU threshold for YOLO NMS. Default=0.45.")
-    parser.add_argument("--shrink-factor", type=float, default=0.1,
-                        help="Shrink bounding boxes by this factor (0.1=10%). Default=0.1.")
+    parser.add_argument("--shrink_factor", type=float, default=0.1,
+                        help="Shrink bounding boxes by this factor (0.1=10%%). Default=0.1.")
+    parser.add_argument("--notrack", action="store_false",help="Disable tracking")
     
     args = parser.parse_args()
 
@@ -73,8 +74,9 @@ def run_cli():
     # Process them
     if input_files:
         process_files(
-            input_files,
+            input_files = input_files,
             verbose=args.verbose,
+            tracking_enabled = args.notrack,
             detection_interval=args.interval,
             conf_threshold=args.conf_threshold,
             iou_threshold=args.iou_threshold,
