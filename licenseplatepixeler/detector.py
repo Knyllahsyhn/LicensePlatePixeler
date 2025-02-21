@@ -8,7 +8,7 @@ logging.getLogger("ultralytics").setLevel(logging.WARNING)
 
 
 class LicensePlateDetector:
-    def __init__(self, model_path='yolo11n.pt', conf_threshold=0.5,iou_threshold=0.45):
+    def __init__(self, model_path='best2.pt', conf_threshold=0.5,iou_threshold=0.45):
         """
         :param model_path: Path to YOLO model
         :param conf_threshold: Confidence threshold for detection
@@ -30,13 +30,14 @@ class LicensePlateDetector:
         results = self.model.predict(
         frame,
         conf=self.conf_threshold,
-        iou = self.iou_threshold)
+        iou = self.iou_threshold,
+        classes=[0,1])
         
         bboxes = []
         # YOLOv8 returns results in results[0].boxes
         # Each box has xyxy format plus confidence, class, etc.
         for box in results[0].boxes:
-            cls_id = box.cls.cpu().numpy()[0]
+            #cls_id = box.cls.cpu().numpy()[0]
             conf = box.conf.cpu().numpy()[0]
             # Filter by confidence or by specific class if model has a "license plate" class
             if conf >= self.conf_threshold:
